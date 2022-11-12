@@ -65,13 +65,7 @@ io.on('connection', (socket) => {
 	console.log(`Room: ${roomName}`)
 	socket.join(roomName)
 	socket.on('message-to-room', async (msg) => {
-	try {
-		await BookDb.findByIdAndUpdate(roomName, { $push: { comments: {username: msg.username, body: msg.body} } })
-	} catch (e) {
-		console.log(e)
-	}
 		msg.type = `room: ${roomName}`
-		msg.date = new Intl.DateTimeFormat().format(new Date)
 		socket.to(roomName).emit('message-to-room', msg)
 		socket.emit('message-to-room', msg)
 	})
