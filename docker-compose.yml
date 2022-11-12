@@ -33,3 +33,5 @@ services:
       - DB_PASSWORD=example
       - DB_NAME=advert_database
       # - NODE_ENV=production
+    volumes:
+      - ./public/stor:/app/public/stor

@@ -64,14 +64,15 @@ rout.get('/advertisements', async (req, res, next) => {
 
 // Создать объявление
 rout.post('/advertisements',
-	fileMulter.single('images'),
+	fileMulter.array('images', 5),
 	async (req, res, next) => {
 		if (!req.isAuthenticated()) {
 			return res.status(401).json('Авторизируйтесь')
 		}
-		const images = req.file ? req.file.path : ''
+		const images = req.files ?? []
+		const imagesPath = images.map((obj) => obj.path)
 		try {
-			const adv = await Advertisement.createAdvert({ ...req.body, userId: req.user.id, isDeleted: false })
+			const adv = await Advertisement.createAdvert({ ...req.body, userId: req.user.id, isDeleted: false , images: imagesPath})
 			res.json(adv.save())
 		} catch (e) {
 			console.log(e)
