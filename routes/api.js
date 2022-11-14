@@ -34,7 +34,7 @@ rout.post('/singup', async (req, res, next) => {
 
 // Залогиниться
 rout.post('/singin',
-	passport.authenticate('local', { failureRedirect: '/' }),
+	passport.authenticate('local', { failureRedirect: '/err401' }),
 	(req, res) => {
 		res.json(req.user)
 })
@@ -54,7 +54,7 @@ rout.get('/advertisements/:id', async (req, res, next) => {
 // Получить список объявлений
 rout.get('/advertisements', async (req, res, next) => {
 	try {
-		const adv = await Advertisement.find()
+		const adv = await Advertisement.findAdvert()
 		res.json(adv)
 	} catch (e) {
 		console.log(e)

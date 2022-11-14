@@ -24,7 +24,6 @@ const UserModule = new Schema({
 })
 
 UserModule.statics.findByEmail = async function(email) {
-	console.log(this)
 	return await this.findOne(email)
 }
 

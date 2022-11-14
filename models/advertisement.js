@@ -47,8 +47,7 @@ const Advertisement = new Schema({
 })
 
 Advertisement.statics.findAdvert = async function(params) {
-	params.isDeleted = false
-	return this.find(params)
+	return this.find({ ...params, isDeleted: false })
 }
 
 Advertisement.statics.createAdvert = async function(data) {

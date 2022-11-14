@@ -8,7 +8,9 @@ const LocalStrategy = require('passport-local').Strategy
 const socketIO = require('socket.io')
 
 const User = require('./models/user')
-const error404 = require('./middleware/err-404')
+const Chat = require('./models/chat')
+const error404 = require('./middleware/err404')
+const error401 = require('./routes/err401')
 const api = require('./routes/api')
 const index = require('./routes/index')
 
@@ -55,25 +57,8 @@ app.use(passport.session())
 
 app.use('/', index)
 app.use('/api', api)
+app.use('/err401', error401)
 app.use(error404)
-
-io.on('connection', (socket) => {
-	const {id} = socket
-	console.log(`Connection ${id}`)
-
-	const {roomName} = socket.handshake.query
-	console.log(`Room: ${roomName}`)
-	socket.join(roomName)
-	socket.on('message-to-room', async (msg) => {
-		msg.type = `room: ${roomName}`
-		socket.to(roomName).emit('message-to-room', msg)
-		socket.emit('message-to-room', msg)
-	})
-
-	socket.on('disconnect', () => {
-		console.log(`Disconnect: ${id}`)
-	})
-})
 
 async function start (HTTP_PORT, MONGO_URL) {
 	try {
