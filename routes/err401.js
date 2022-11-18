@@ -3,7 +3,10 @@ const rout = express.Router()
 
 rout.get('/', (req, res) => {
 	res.status(401)
-	res.json('401 | неверный логин или пароль.')
+	res.json({
+		error: "Неверный логин или пароль",
+		status: "error"
+	})
 })
 
 module.exports = rout

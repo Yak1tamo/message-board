@@ -22,7 +22,7 @@ const server = http.Server(app)
 const io = socketIO(server)
 
 const verify = (email, password, done) => {
-	User.findOne({ email }, (err, user) => {
+	User.findByEmail(email, (err, user) => {
 		if (err) { return done(err) }
 		if (!user) { return done(null, false) }
 		const flag = bcrypt.compareSync(password, user.passwordHash)
@@ -51,9 +51,37 @@ app.use('/public', express.static(__dirname+'/public'))
 app.use(express.json())
 app.use(express.urlencoded({extended: true}))
 app.set("view engine", "ejs")
+
 app.use(session({ secret: 'SECRET'}))
 app.use(passport.initialize())
 app.use(passport.session())
+
+// let count = 1
+
+// printData = (req, res, next) => {
+//     console.log("\n==============================")
+//     console.log(`------------>  ${count++}`)
+
+//     console.log(`req.body.email -------> ${req.body.email}`)
+//     console.log(`req.body.password -------> ${req.body.password}`)
+
+//     console.log(`\n req.session.passport -------> `)
+//     console.log(req.session.passport)
+
+//     console.log(`\n req.user -------> `)
+//     console.log(req.user)
+
+//     console.log("\n Session and Cookie")
+//     console.log(`req.session.id -------> ${req.session.id}`)
+//     console.log(`req.session.cookie -------> `)
+//     console.log(req.session.cookie)
+
+//     console.log("===========================================\n")
+
+//     next()
+// }
+
+// app.use(printData)
 
 app.use('/', index)
 app.use('/api', api)

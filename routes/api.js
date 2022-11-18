@@ -9,22 +9,33 @@ const fileMulter = require('../middleware/file')
 
 // Зарегистрироваться
 rout.post('/singup', async (req, res, next) => {
-	const email = await User.findOne({email: req.body.email})
+	const email = await User.findByEmail(req.body.email)
 	if(email){
-		return res.json('email занят')
+		return res.status(401).json({
+			error: "email занят",
+			status: "error"
+		})
 	}
 	const passwordHash = await bcrypt.hash(req.body.password, 10)
-	const user = new User({
+	const newUser = {
 		email: req.body.email,
 		passwordHash: passwordHash,
 		name: req.body.name,
 		contactPhone: req.body.contactPhone ?? ''
-	})
+	}
 	try {
-		const updatedUser = await user.save()
+		const updatedUser = await User.create(newUser)
 		req.login(updatedUser, function(err) {
 			if (err) { return next() }
-			return res.json(updatedUser)
+			return res.json({
+				data: {
+				id: updatedUser.id,
+				email: updatedUser.email,
+				name: updatedUser.name,
+				contactPhone: updatedUser.contactPhone
+			},
+			status: "ok"
+		})
 		})
 	} catch (e) {
 		console.log(e)
@@ -36,7 +47,22 @@ rout.post('/singup', async (req, res, next) => {
 rout.post('/singin',
 	passport.authenticate('local', { failureRedirect: '/err401' }),
 	(req, res) => {
-		res.json(req.user)
+		res.json({
+			data: {
+			id: req.user.id,
+			email: req.user.email,
+			name: req.user.name,
+			contactPhone: req.user.contactPhone
+		},
+		status: "ok"})
+})
+
+// Разлогиниться
+rout.get('/logout', (req, res, next) => {
+	req.logout(function(err) {
+		if (err) { return next(err) }
+		res.redirect('/')
+	})
 })
 
 // Получить данные объявления
@@ -72,7 +98,7 @@ rout.post('/advertisements',
 		const images = req.files ?? []
 		const imagesPath = images.map((obj) => obj.path)
 		try {
-			const adv = await Advertisement.createAdvert({ ...req.body, userId: req.user.id, isDeleted: false , images: imagesPath})
+			const adv = await Advertisement.createAdvert({ ...req.body, userId: req.user.id, images: imagesPath})
 			res.json(adv.save())
 		} catch (e) {
 			console.log(e)

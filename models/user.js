@@ -23,13 +23,8 @@ const UserModule = new Schema({
 	}
 })
 
-UserModule.statics.findByEmail = async function(email) {
-	return await this.findOne(email)
-}
-
-UserModule.statics.createUser = async function(data) {
-	const user = await new UserModule(data)
-	return user.save()
+UserModule.statics.findByEmail = async function(email, cb) {
+	return await this.findOne({ email: email }).exec(cb)
 }
 
 module.exports = model('User', UserModule)

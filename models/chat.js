@@ -2,7 +2,7 @@ const {Schema, model} = require('mongoose')
 
 const Chat = new Schema({
 	users: {
-		type: [Schema.Types.ObjectId, Schema.Types.ObjectId],
+		type: [Schema.Types.ObjectId],
 		required: true,
 		unique: false,
 		ref: 'User'
@@ -57,7 +57,7 @@ Chat.statics.sendMessage = async function(data) {
 }
 
 Chat.statics.subscribe = async function(cb) {
-	const advert = this.findById(id)
+	const chat = this.findById(id)
 }
 
 Chat.statics.getHistory = async function(id) {

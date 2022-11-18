@@ -51,11 +51,11 @@ Advertisement.statics.findAdvert = async function(params) {
 }
 
 Advertisement.statics.createAdvert = async function(data) {
-	return await new this(data)
+	return await new this({ ...data, isDeleted: false })
 }
 
 Advertisement.statics.removeAdvert = async function(id) {
-	return await this.findByIdAndUpdate(id, {isDeleted: true})
+	return await this.findByIdAndUpdate(id, { isDeleted: true })
 }
 
 module.exports = model('Advertisement', Advertisement)
