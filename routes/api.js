@@ -27,15 +27,7 @@ rout.post('/singup', async (req, res, next) => {
 		const updatedUser = await User.create(newUser)
 		req.login(updatedUser, function(err) {
 			if (err) { return next() }
-			return res.json({
-				data: {
-				id: updatedUser.id,
-				email: updatedUser.email,
-				name: updatedUser.name,
-				contactPhone: updatedUser.contactPhone
-			},
-			status: "ok"
-		})
+			return res.json(User.getResponse(updatedUser))
 		})
 	} catch (e) {
 		console.log(e)
@@ -47,14 +39,7 @@ rout.post('/singup', async (req, res, next) => {
 rout.post('/singin',
 	passport.authenticate('local', { failureRedirect: '/err401' }),
 	(req, res) => {
-		res.json({
-			data: {
-			id: req.user.id,
-			email: req.user.email,
-			name: req.user.name,
-			contactPhone: req.user.contactPhone
-		},
-		status: "ok"})
+		res.json(User.getResponse(req.user))
 })
 
 // Разлогиниться
@@ -70,7 +55,11 @@ rout.get('/advertisements/:id', async (req, res, next) => {
 	const { id } = req.params
 	try {
 		const adv = await Advertisement.findById(id)
-		res.json(adv)
+		const user = await User.findById(adv.userId).select('name')
+		res.json({
+			data: Advertisement.getResponse(adv, user.name),
+			status: 'ok'
+		})
 	} catch (e) {
 		console.log(e)
 		next()
@@ -81,7 +70,13 @@ rout.get('/advertisements/:id', async (req, res, next) => {
 rout.get('/advertisements', async (req, res, next) => {
 	try {
 		const adv = await Advertisement.findAdvert()
-		res.json(adv)
+			res.json({
+				data: await Promise.all(adv.map(async (el) => {
+					const user = await User.findById(el.userId).select('name')
+					return Advertisement.getResponse(el, user.name)
+				})),
+				status: 'ok'
+			})
 	} catch (e) {
 		console.log(e)
 		next()
@@ -99,7 +94,11 @@ rout.post('/advertisements',
 		const imagesPath = images.map((obj) => obj.path)
 		try {
 			const adv = await Advertisement.createAdvert({ ...req.body, userId: req.user.id, images: imagesPath})
-			res.json(adv.save())
+			const user = await User.findById(adv.userId).select('name')
+			res.json({
+				data: Advertisement.getResponse(adv, user.name),
+				status: 'ok'
+			})
 		} catch (e) {
 			console.log(e)
 			next()
@@ -119,7 +118,10 @@ rout.delete('/advertisements/:id', async (req, res, next) => {
 	}
 	try {
 		const adv = await Advertisement.removeAdvert(id)
-		res.json(adv)
+		if(!adv) {
+			next()
+		}
+		res.json(true)
 	} catch (e) {
 		console.log(e)
 		next()
