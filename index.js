@@ -61,6 +61,33 @@ app.use('/api', api)
 app.use('/err401', error401)
 app.use(error404)
 
+io.on('connection', (socket) => {
+	const {id} = socket
+	console.log(`Connection ${id}`)
+
+	socket.on('newMessage', async (msg) => {
+		try {
+		if( !(msg.author || await User.findById(msg.receiver)) ) {
+			return
+		}
+		const user = await User.findById(msg.author)
+		const chat = await Chat.sendMessage(msg, user.name)
+		if( !chat ) {
+			return
+		}
+		socket.join(chat.id)
+		socket.to(chat.id).emit('newMessage', chat)
+		socket.emit('newMessage', chat)
+		} catch (e) {
+			console.log(e)
+		}
+	})
+
+	socket.on('disconnect', () => {
+		console.log(`Disconnect: ${id}`)
+	})
+})
+
 async function start (HTTP_PORT, MONGO_URL) {
 	try {
 		await mongoose.connect(MONGO_URL, {

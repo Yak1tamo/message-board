@@ -3,9 +3,12 @@ const rout = express.Router()
 
 rout.get('/', (req, res) => {
 	const title = 'Главная страница'
+	const id  = req.user?.id ?? ''
+	const name  = req.user?.name ?? ''
 	res.render('index', {
 		title: title,
-		user: req.user
+		user: id,
+		userName: name
 	})
 })
 

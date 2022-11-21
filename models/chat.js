@@ -1,19 +1,29 @@
-const {Schema, model} = require('mongoose')
+const mongoose = require('mongoose')
+const Schema = mongoose.Schema
+const model = mongoose.model
 
 const Chat = new Schema({
 	users: {
-		type: [Schema.Types.ObjectId],
+		type: [Schema.Types.ObjectId, Schema.Types.ObjectId],
 		required: true,
 		unique: false,
-		ref: 'User'
+		ref: 'User',
+		// set: () => {}
 	},
 	createdAt: {
 		type: Date,
 		required: true,
-		unique: false
+		unique: false,
+		default: Date.now
 	},
 	messages: [
 		{
+			_id: {
+				type: Schema.Types.ObjectId,
+				required: true,
+				unique: true,
+				default: new mongoose.Types.ObjectId()
+			},
 			author: {
 				type: Schema.Types.ObjectId,
 				required: true,
@@ -23,7 +33,8 @@ const Chat = new Schema({
 			sentAt: {
 				type: Date,
 				required: true,
-				unique: false
+				unique: false,
+				default: Date.now
 			},
 			text: {
 				type: String,
@@ -39,30 +50,31 @@ const Chat = new Schema({
 	]
 })
 
-Chat.statics.findChat = async function(users) {
-	return this.find(users)
-}
+Chat.statics.sendMessage = async function(data, name) {
+	try {
 
-Chat.statics.sendMessage = async function(data) {
-	let ch = Chat.findOne({users: [data.author, data.receiver]})
-	ch = ch ? ch : await new Chat({
-		users: [data.author, data.receiver]
-	})
-	ch.messages.push({
-		_id: new ObjectID(),
+		let chat = await this.findOne({users: [data.author, data.receiver]})
+	if(!chat) {
+		chat = await new this({
+			users: [data.author, data.receiver]
+		})
+	}
+	chat.messages.push({
+		_id: new mongoose.Types.ObjectId(),
 		author: data.author,
 		text: data.text
 	})
-	return ch.save()
-}
-
-Chat.statics.subscribe = async function(cb) {
-	const chat = this.findById(id)
-}
-
-Chat.statics.getHistory = async function(id) {
-	const chat = await this.findById(id)
-	return chat.messages
+	await chat.save()
+	return chat.messages.map((el) => {
+		return {
+			text: el.text,
+			sentAt: new Intl.DateTimeFormat().format(el.sentAt),
+			author: name
+		}
+	})
+	} catch (e) {
+		console.log(e)
+	}
 }
 
 module.exports = model('Chat', Chat)

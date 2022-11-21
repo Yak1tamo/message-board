@@ -19,9 +19,90 @@
 <h1><%= title %></h1>
 <% if (!user) { %>
 	<p>Пожалуйста, авторизуйтесь</p>
+	<form action="api/singin" method="post">
+		<div>
+				<label>Логин:</label>
+				<input type="text" name="email" /><br />
+		</div>
+		<div>
+				<label>Пароль:</label>
+				<input type="password" name="password" />
+		</div>
+		<div>
+				<input type="submit" value="Войти" />
+		</div>
+	</form>
 <% } else { %>
-	<p>Привет, <%= user.name %>. </p>
+	<p>Привет, <%= userName %>. </p>
+
+	<div class="row">
+		<div class="col-4">
+				<div id="list" class="list-group">
+				</div>
+		</div>
+</div>
+
+<form action="/" method="POST">
+	<div class="form-group">
+		<input id="username" type="hidden" name="username" value="<%= user %>">
+			<label for="body">message</label>
+			<textarea
+							placeholder="message"
+							class="form-control"
+							id="body"
+							name="body"
+			></textarea>
+			<label for="userId">userId to send</label> <br>
+			<input id="userId" type="text" name="userId">
+	</div>
+
+	<button type="button" id="send-room" class="btn btn-primary">Отправить</button>
+</form>
+
 <% } %>
+
+<script src="https://cdn.socket.io/4.5.0/socket.io.min.js"
+	integrity="sha384-7EyYLQZgWBi67fBtVxw60/OWl1kjsfrPFcaU0pp0nAh+i8FD068QogUvg85Ewy1k"
+	crossorigin="anonymous"></script>
+<script src="/socket.io/socket.io.js"> </script>
+
+<script>
+	const roomName = location.pathname.split('/').pop()
+	const socket = io.connect('/', {query: `roomName=${roomName}`})
+	const boxList = document.querySelector('#list')
+	const author = document.querySelector('#username')
+	const receiver = document.querySelector('#userId')
+	const textBody = document.querySelector('#body')
+	const sendRoom = document.querySelector('#send-room')
+
+	const getTmp = (msg) => {
+		return `
+				<div id="list" class="list-group">
+						<div>
+										<b>${msg.author}:</b>
+										<div>${msg.text}</div>
+										<small>${msg.sentAt}</small>
+								</div>
+								<br>
+				</div>`
+		}
+
+	socket.on('newMessage', (msg) => {
+		boxList.innerHTML = ''
+		const div = msg.reduce((code, el) => code + getTmp(el), '')
+		boxList.insertAdjacentHTML('beforeend', div)
+	})
+
+	sendRoom.addEventListener('click', () => {
+	socket.emit('newMessage', {
+		author: author.value,
+		text: textBody.value,
+		receiver: receiver.value
+	})
+	textBody.value = ''
+	})
+
+	</script>
 
 </div>
 
