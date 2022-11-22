@@ -1,6 +1,5 @@
 const mongoose = require('mongoose')
-const Schema = mongoose.Schema
-const model = mongoose.model
+const { Schema, model } = mongoose
 
 const Chat = new Schema({
 	users: {
@@ -8,7 +7,6 @@ const Chat = new Schema({
 		required: true,
 		unique: false,
 		ref: 'User',
-		// set: () => {}
 	},
 	createdAt: {
 		type: Date,
@@ -50,10 +48,9 @@ const Chat = new Schema({
 	]
 })
 
-Chat.statics.sendMessage = async function(data, name) {
+Chat.statics.sendMessage = async function(data) {
 	try {
-
-		let chat = await this.findOne({users: [data.author, data.receiver]})
+		let chat = await this.findOne({users: [data.author, data.receiver]}) ?? await this.findOne({users: [data.receiver, data.author]})
 	if(!chat) {
 		chat = await new this({
 			users: [data.author, data.receiver]
@@ -65,13 +62,17 @@ Chat.statics.sendMessage = async function(data, name) {
 		text: data.text
 	})
 	await chat.save()
-	return chat.messages.map((el) => {
-		return {
-			text: el.text,
-			sentAt: new Intl.DateTimeFormat().format(el.sentAt),
-			author: name
-		}
-	})
+	await chat.populate('messages.author', 'name')
+	return {
+		id: chat.id,
+		messages: chat.messages.map((el) => {
+			return {
+				text: el.text,
+				sentAt: new Intl.DateTimeFormat().format(el.sentAt),
+				author: el.author.name
+			}
+		})
+	}
 	} catch (e) {
 		console.log(e)
 	}

@@ -70,14 +70,13 @@ io.on('connection', (socket) => {
 		if( !(msg.author || await User.findById(msg.receiver)) ) {
 			return
 		}
-		const user = await User.findById(msg.author)
-		const chat = await Chat.sendMessage(msg, user.name)
+		const chat = await Chat.sendMessage(msg)
 		if( !chat ) {
 			return
 		}
 		socket.join(chat.id)
-		socket.to(chat.id).emit('newMessage', chat)
-		socket.emit('newMessage', chat)
+		socket.to(chat.id).emit('newMessage', chat.messages)
+		socket.emit('newMessage', chat.messages)
 		} catch (e) {
 			console.log(e)
 		}

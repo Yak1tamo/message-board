@@ -88,6 +88,7 @@
 		}
 
 	socket.on('newMessage', (msg) => {
+		textBody.value = ''
 		boxList.innerHTML = ''
 		const div = msg.reduce((code, el) => code + getTmp(el), '')
 		boxList.insertAdjacentHTML('beforeend', div)
@@ -99,7 +100,6 @@
 		text: textBody.value,
 		receiver: receiver.value
 	})
-	textBody.value = ''
 	})
 
 	</script>
